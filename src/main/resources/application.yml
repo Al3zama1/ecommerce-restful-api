@@ -1,0 +1,5 @@
+
+custom:
+  application:
+    name: E-Commerce RESTful API
+    version: 1.0
