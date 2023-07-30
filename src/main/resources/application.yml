@@ -1,5 +1,10 @@
+spring:
+  application:
+    name: E-Commerce RESTful API
+
+  profiles:
+    active: @spring.profiles.active@
 
 custom:
   application:
-    name: E-Commerce RESTful API
     version: 1.0
