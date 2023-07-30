@@ -1,0 +1,19 @@
+spring:
+  devtools:
+    livereload:
+      enabled: true
+  datasource:
+    username: test
+    password: test
+    url: jdbc:postgresql://localhost:5432/ecommerce-restful-api
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
