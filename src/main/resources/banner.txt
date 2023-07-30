@@ -6,7 +6,7 @@
  |______|    \___\___/|_| |_| |_|_| |_| |_|\___|_|  \___\___| |_|  \_\______|_____/   |_| |_|  \__,_|_| /_/    \_\_|   |_____|
 
 
-${custom.application.name} ${custom.application.version}
+${spring.application.name} ${custom.application.version}
 Powered by Spring Boot ${spring-boot.version}
 Author: Abran Lezama
 Website: https://abranlezama.com
