@@ -1,6 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
@@ -71,7 +71,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/activate-account")
-    public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody ActivateRequestDTO request) {
+    public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody ActivateAccountRequestDTO request) {
         authenticationService.activateCustomerAccount(request.token());
         return ResponseEntity.ok()
                 .body(HttpResponse.builder()

@@ -1,6 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
@@ -227,7 +227,7 @@ class AuthenticationControllerIT {
         void shouldReturn200StatusCodeWhenCustomerAccountIsActivated() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
             // When
             mockMvc.perform(post("/api/v1/auth/activate-account")
@@ -244,7 +244,7 @@ class AuthenticationControllerIT {
         void shouldReturn400StatusCodeWhenActivationTokenFailsValidation() throws Exception {
             // Given
             String activationToken = "some random incorrect account activation token";
-            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
             // When
             mockMvc.perform(post("/api/v1/auth/activate-account")
@@ -263,7 +263,7 @@ class AuthenticationControllerIT {
         void shouldReturn404StatusWhenAccountActivationTokenIsNotValid() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
             doThrow(new NotFoundException(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)).when(authenticationService)
                     .activateCustomerAccount(activationToken);
@@ -284,7 +284,7 @@ class AuthenticationControllerIT {
         void shouldReturn409StatusCodeWhenActivatingActiveAccount() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
             doThrow(new ConflictException(ACCOUNT_IS_ACTIVE_ALREADY)).when(authenticationService)
                     .activateCustomerAccount(activationToken);
