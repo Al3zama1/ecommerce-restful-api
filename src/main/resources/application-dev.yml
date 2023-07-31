@@ -17,3 +17,7 @@ spring:
         globally_quoted_identifiers: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+custom:
+  jwt:
+    secret: this-isk2;3429wweyurpowuerwuieoihfwer9w8e9r2
