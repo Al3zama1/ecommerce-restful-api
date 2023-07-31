@@ -5,9 +5,14 @@ import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
+import com.abranlezama.ecommercerestfulapi.jwt.service.JwtService;
 import com.abranlezama.ecommercerestfulapi.user.model.User;
 import com.abranlezama.ecommercerestfulapi.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +28,8 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
     public long registerCustomer(RegisterRequestDTO request) {
@@ -46,6 +53,14 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     @Override
     public Map<String, String> authenticateCustomer(LoginRequestDTO request) {
-        return null;
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+        );
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return Map.of(
+                "accessToken", jwtService.createAccessToken(userDetails),
+                "refreshToken", jwtService.createRefreshToken()
+        );
     }
 }

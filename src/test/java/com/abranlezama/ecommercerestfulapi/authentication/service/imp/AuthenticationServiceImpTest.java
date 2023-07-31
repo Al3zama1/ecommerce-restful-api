@@ -1,10 +1,14 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
+import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
+import com.abranlezama.ecommercerestfulapi.jwt.service.JwtService;
+import com.abranlezama.ecommercerestfulapi.objectMother.UserObjectMother;
 import com.abranlezama.ecommercerestfulapi.user.model.User;
 import com.abranlezama.ecommercerestfulapi.user.repository.UserRepository;
+import com.abranlezama.ecommercerestfulapi.user.service.imp.SecurityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,10 +16,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Map;
 
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.REGISTER_EMAIL_MUST_BE_UNIQUE;
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.REGISTER_PASSWORDS_MISMATCH;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,6 +40,10 @@ class AuthenticationServiceImpTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private JwtService jwtService;
+    @Mock
+    private AuthenticationManager authenticationManager;
     @InjectMocks
     private AuthenticationServiceImp cut;
 
@@ -94,6 +107,34 @@ class AuthenticationServiceImpTest {
 
             // Then
             then(userRepository).should(never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("customer authentication")
+    class CustomerAuthentication {
+
+        @Test
+        @DisplayName("should authenticate customer")
+        void shouldAuthenticateCustomer() {
+            // Given
+            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            SecurityService.UserPrincipal userPrincipal = new SecurityService.UserPrincipal(UserObjectMother.customer().build());
+            UsernamePasswordAuthenticationToken authTokenRequest = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
+            UsernamePasswordAuthenticationToken authTokenResponse = new UsernamePasswordAuthenticationToken(
+                    userPrincipal, null
+            );
+
+            given(authenticationManager.authenticate(authTokenRequest)).willReturn(authTokenResponse);
+            given(jwtService.createAccessToken(userPrincipal)).willReturn("access-token");
+            given(jwtService.createRefreshToken()).willReturn("refresh-token");
+
+            // When
+            Map<String, String> tokens = cut.authenticateCustomer(loginRequest);
+
+            // Then
+            assertThat(tokens.get("accessToken")).isEqualTo("access-token");
+            assertThat(tokens.get("refreshToken")).isEqualTo("refresh-token");
         }
     }
 
