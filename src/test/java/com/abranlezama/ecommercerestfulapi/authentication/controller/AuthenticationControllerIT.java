@@ -1,8 +1,8 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,15 +14,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Map;
+
+import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthenticationController.class)
 @Import(SecurityConfig.class)
@@ -97,14 +104,111 @@ class AuthenticationControllerIT {
             // Given
             LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
 
+            given(authenticationService.authenticateCustomer(loginRequest))
+                    .willReturn(Map.of("refreshToken", "refresh-token", "accessToken", "access-token"));
+
             // When
             mockMvc.perform(post("/api/v1/auth")
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isOk())
+                    .andExpect(cookie().exists("refreshToken"))
+                    .andExpect(cookie().maxAge("refreshToken", 432000));
 
             // Then
+            then(authenticationService).should().authenticateCustomer(loginRequest);
 
+        }
+
+        @Test
+        @DisplayName("return 401 status cod when authentication fails due to incorrect email")
+        void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToIncorrectEmail() throws Exception {
+            // Given
+            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+
+            given(authenticationService.authenticateCustomer(loginRequest))
+                    .willThrow(new UsernameNotFoundException(FAILED_AUTHENTICATION));
+
+            // When
+            mockMvc.perform(post("/api/v1/auth")
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message", Matchers.is(FAILED_AUTHENTICATION)))
+                    .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
+                    .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
+
+            // Then
+            then(authenticationService).should().authenticateCustomer(loginRequest);
+
+        }
+
+        @Test
+        @DisplayName("return 401 status cod when authentication fails due to incorrect password")
+        void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToIncorrectPassword() throws Exception {
+            // Given
+            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+
+            given(authenticationService.authenticateCustomer(loginRequest))
+                    .willThrow(new BadCredentialsException(FAILED_AUTHENTICATION));
+
+            // When
+            mockMvc.perform(post("/api/v1/auth")
+                            .contentType(APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message", Matchers.is(FAILED_AUTHENTICATION)))
+                    .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
+                    .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
+
+            // Then
+            then(authenticationService).should().authenticateCustomer(loginRequest);
+
+        }
+
+        @Test
+        @DisplayName("return 401 status cod when authentication fails due to unactivated account")
+        void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToUnactivatedAccount() throws Exception {
+            // Given
+            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+
+            given(authenticationService.authenticateCustomer(loginRequest))
+                    .willThrow(new DisabledException(ACCOUNT_DISABLED));
+
+            // When
+            mockMvc.perform(post("/api/v1/auth")
+                            .contentType(APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_DISABLED)))
+                    .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
+                    .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
+
+            // Then
+            then(authenticationService).should().authenticateCustomer(loginRequest);
+
+        }
+
+        @Test
+        @DisplayName("return 401 status cod when authentication fails due to account locked")
+        void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToAccountLocked() throws Exception {
+            // Given
+            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+
+            given(authenticationService.authenticateCustomer(loginRequest))
+                    .willThrow(new LockedException(ACCOUNT_LOCKED));
+
+            // When
+            mockMvc.perform(post("/api/v1/auth")
+                            .contentType(APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_LOCKED)))
+                    .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
+                    .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
+
+            // Then
+            then(authenticationService).should().authenticateCustomer(loginRequest);
 
         }
     }
