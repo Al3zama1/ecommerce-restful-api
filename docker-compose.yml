@@ -10,3 +10,24 @@ services:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
       POSTGRES_DB: ecommerce-restful-api
+  greenmail:
+    image: greenmail/standalone:2.0.0
+    environment:
+      - GREENMAIL_USER=test
+      - GREENMAIL_PASSWORD=test
+    ports:
+      - 3025:3025
+      - 3110:3110
+      - 3143:3143
+  roundcube:
+    image: roundcube/roundcubemail
+    depends_on:
+      - greenmail
+    ports:
+      - "8000:80"
+      - "9000:9000"
+    environment:
+      - ROUNDCUBEMAIL_DEFAULT_HOST=greenmail  # IMAP server - tls:// prefix for STARTTLS, ssl:// for SSL/TLS
+      - ROUNDCUBEMAIL_DEFAULT_PORT=3143       # IMAP port
+      - ROUNDCUBEMAIL_SMTP_SERVER=greenmail   # SMTP server - tls:// prefix for STARTTLS, ssl:// for SSL/TLS
+      - ROUNDCUBEMAIL_SMTP_PORT=3025          # SMTP port
