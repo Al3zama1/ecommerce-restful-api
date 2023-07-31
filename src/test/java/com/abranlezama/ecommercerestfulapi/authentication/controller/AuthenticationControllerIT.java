@@ -3,6 +3,7 @@ package com.abranlezama.ecommercerestfulapi.authentication.controller;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.service.AccountActivationService;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
@@ -48,6 +49,8 @@ class AuthenticationControllerIT {
 
     @MockBean
     private AuthenticationService authenticationService;
+    @MockBean
+    private AccountActivationService accountActivationService;
     @MockBean
     private UserDetailsService userDetailsService;
     @MockBean
@@ -236,7 +239,7 @@ class AuthenticationControllerIT {
                     .andExpect(status().isOk());
 
             // Then
-            then(authenticationService).should().activateCustomerAccount(activationToken);
+            then(accountActivationService).should().activateCustomerAccount(activationToken);
         }
 
         @Test
@@ -265,7 +268,7 @@ class AuthenticationControllerIT {
             String activationToken = UUID.randomUUID().toString();
             ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
-            doThrow(new NotFoundException(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)).when(authenticationService)
+            doThrow(new NotFoundException(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)).when(accountActivationService)
                     .activateCustomerAccount(activationToken);
 
             // When
@@ -276,7 +279,7 @@ class AuthenticationControllerIT {
                     .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)));
 
             // Then
-            then(authenticationService).should().activateCustomerAccount(activationToken);
+            then(accountActivationService).should().activateCustomerAccount(activationToken);
         }
 
         @Test
@@ -286,7 +289,7 @@ class AuthenticationControllerIT {
             String activationToken = UUID.randomUUID().toString();
             ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
 
-            doThrow(new ConflictException(ACCOUNT_IS_ACTIVE_ALREADY)).when(authenticationService)
+            doThrow(new ConflictException(ACCOUNT_IS_ACTIVE_ALREADY)).when(accountActivationService)
                     .activateCustomerAccount(activationToken);
 
             // When
@@ -297,7 +300,7 @@ class AuthenticationControllerIT {
                     .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_IS_ACTIVE_ALREADY)));
 
             // Then
-            then(authenticationService).should().activateCustomerAccount(activationToken);
+            then(accountActivationService).should().activateCustomerAccount(activationToken);
         }
     }
 

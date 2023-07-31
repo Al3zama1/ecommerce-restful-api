@@ -3,6 +3,7 @@ package com.abranlezama.ecommercerestfulapi.authentication.controller;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.service.AccountActivationService;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import jakarta.validation.Valid;
@@ -32,6 +33,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final AccountActivationService accountActivationService;
 
     @Value("${custom.api-domain}")
     private String domain;
@@ -72,7 +74,7 @@ public class AuthenticationController {
 
     @PostMapping("/activate-account")
     public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody ActivateAccountRequestDTO request) {
-        authenticationService.activateCustomerAccount(request.token());
+        accountActivationService.activateCustomerAccount(request.token());
         return ResponseEntity.ok()
                 .body(HttpResponse.builder()
                         .status(OK.getReasonPhrase().toLowerCase())

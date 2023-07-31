@@ -9,5 +9,4 @@ public interface AuthenticationService {
 
     long registerCustomer(RegisterRequestDTO request);
     Map<String, String> authenticateCustomer(LoginRequestDTO request);
-    void activateCustomerAccount(String token);
 }
