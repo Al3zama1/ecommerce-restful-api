@@ -1,10 +1,13 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
+import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
+import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
+import com.abranlezama.ecommercerestfulapi.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -22,10 +25,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -210,6 +215,89 @@ class AuthenticationControllerIT {
             // Then
             then(authenticationService).should().authenticateCustomer(loginRequest);
 
+        }
+    }
+
+    @Nested
+    @DisplayName("customer account activation")
+    class CustomerAccountActivation {
+
+        @Test
+        @DisplayName("should return 200 status code when account customer is activate")
+        void shouldReturn200StatusCodeWhenCustomerAccountIsActivated() throws Exception {
+            // Given
+            String activationToken = UUID.randomUUID().toString();
+            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+
+            // When
+            mockMvc.perform(post("/api/v1/auth/activate-account")
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(activateRequest)))
+                    .andExpect(status().isOk());
+
+            // Then
+            then(authenticationService).should().activateCustomerAccount(activationToken);
+        }
+
+        @Test
+        @DisplayName("should return 400 status code when activation token fails validation")
+        void shouldReturn400StatusCodeWhenActivationTokenFailsValidation() throws Exception {
+            // Given
+            String activationToken = "some random incorrect account activation token";
+            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+
+            // When
+            mockMvc.perform(post("/api/v1/auth/activate-account")
+                            .contentType(APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(activateRequest)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.validationErrors[0].field", Matchers.is("token")))
+                    .andExpect(jsonPath("$.validationErrors[0].message", Matchers.is("size must be between 36 and 36")));
+
+            // Then
+            then(authenticationService).shouldHaveNoInteractions();
+        }
+
+        @Test
+        @DisplayName("should return 404 status when account activation token is not valid")
+        void shouldReturn404StatusWhenAccountActivationTokenIsNotValid() throws Exception {
+            // Given
+            String activationToken = UUID.randomUUID().toString();
+            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+
+            doThrow(new NotFoundException(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)).when(authenticationService)
+                    .activateCustomerAccount(activationToken);
+
+            // When
+            mockMvc.perform(post("/api/v1/auth/activate-account")
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(activateRequest)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)));
+
+            // Then
+            then(authenticationService).should().activateCustomerAccount(activationToken);
+        }
+
+        @Test
+        @DisplayName("should return 409 status when activating active account")
+        void shouldReturn409StatusCodeWhenActivatingActiveAccount() throws Exception {
+            // Given
+            String activationToken = UUID.randomUUID().toString();
+            ActivateRequestDTO activateRequest = new ActivateRequestDTO(activationToken);
+
+            doThrow(new ConflictException(ACCOUNT_IS_ACTIVE_ALREADY)).when(authenticationService)
+                    .activateCustomerAccount(activationToken);
+
+            // When
+            mockMvc.perform(post("/api/v1/auth/activate-account")
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(activateRequest)))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_IS_ACTIVE_ALREADY)));
+
+            // Then
+            then(authenticationService).should().activateCustomerAccount(activationToken);
         }
     }
 

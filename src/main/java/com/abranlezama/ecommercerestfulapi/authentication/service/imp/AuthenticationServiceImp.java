@@ -63,4 +63,9 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 "refreshToken", jwtService.createRefreshToken()
         );
     }
+
+    @Override
+    public void activateCustomerAccount(String token) {
+
+    }
 }

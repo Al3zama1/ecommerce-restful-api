@@ -7,4 +7,7 @@ public class ExceptionMessages {
     public static final String FAILED_AUTHENTICATION = "Authentication failed. Check your credentials and try again";
     public static final String REGISTER_PASSWORDS_MISMATCH = "Registration failed. Provided passwords must match";
     public static final String REGISTER_EMAIL_MUST_BE_UNIQUE = "Registration failed. Email is already taken";
+    public static final String ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND = "Activation token could not be found. Verify token or request a new one";
+    public static final String ACCOUNT_IS_ACTIVE_ALREADY = "Account is activated already";
+
 }

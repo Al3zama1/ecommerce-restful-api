@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
+import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
@@ -57,7 +58,7 @@ public class AuthenticationController {
                 .maxAge(Duration.ofMillis(REFRESH_TOKEN_EXPIRATION_TIME))
                 .build();
     }
-    
+
     @PostMapping("/register")
     public ResponseEntity<HttpResponse> registerCustomer(@Valid @RequestBody RegisterRequestDTO request,
                                                  UriComponentsBuilder uriComponentsBuilder) {
@@ -67,5 +68,15 @@ public class AuthenticationController {
                 .body(HttpResponse.builder()
                         .status(CREATED.getReasonPhrase().toLowerCase())
                         .statusCode(CREATED.value()).build());
+    }
+
+    @PostMapping("/activate-account")
+    public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody ActivateRequestDTO request) {
+        authenticationService.activateCustomerAccount(request.token());
+        return ResponseEntity.ok()
+                .body(HttpResponse.builder()
+                        .status(OK.getReasonPhrase().toLowerCase())
+                        .statusCode(OK.value())
+                        .build());
     }
 }
