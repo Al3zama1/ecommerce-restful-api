@@ -1,8 +1,9 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
 import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
+import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,8 @@ import java.util.Map;
 
 import static com.abranlezama.ecommercerestfulapi.authentication.util.RefreshTokenConstants.REFRESH_TOKEN_EXPIRATION_TIME;
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -33,11 +36,16 @@ public class AuthenticationController {
     private String domain;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> authenticateUser(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<HttpResponse> authenticateUser(@Valid @RequestBody LoginRequestDTO request) {
         Map<String, String> tokens = authenticationService.authenticateCustomer(request);
         return ResponseEntity.ok()
                 .header(SET_COOKIE, createUserRefreshTokenCookie(tokens.get("refreshToken")).toString())
-                .body(Map.of("accessToken", tokens.get("accessToken")));
+                .body(HttpResponse.builder()
+                        .status(OK.getReasonPhrase().toLowerCase())
+                        .statusCode(OK.value())
+                        .result(Map.of("accessToken", tokens.get("accessToken")))
+                        .build()
+                );
     }
 
     private ResponseCookie createUserRefreshTokenCookie(String refreshToken) {
@@ -49,11 +57,15 @@ public class AuthenticationController {
                 .maxAge(Duration.ofMillis(REFRESH_TOKEN_EXPIRATION_TIME))
                 .build();
     }
+    
     @PostMapping("/register")
-    public ResponseEntity<Void> registerCustomer(@Valid @RequestBody RegisterRequestDTO request,
+    public ResponseEntity<HttpResponse> registerCustomer(@Valid @RequestBody RegisterRequestDTO request,
                                                  UriComponentsBuilder uriComponentsBuilder) {
         long userId = authenticationService.registerCustomer(request);
         UriComponents uriComponents = uriComponentsBuilder.path("/api/v1/users/{id}").buildAndExpand(userId);
-        return ResponseEntity.created(URI.create(uriComponents.toUriString())).build();
+        return ResponseEntity.created(URI.create(uriComponents.toUriString()))
+                .body(HttpResponse.builder()
+                        .status(CREATED.getReasonPhrase().toLowerCase())
+                        .statusCode(CREATED.value()).build());
     }
 }

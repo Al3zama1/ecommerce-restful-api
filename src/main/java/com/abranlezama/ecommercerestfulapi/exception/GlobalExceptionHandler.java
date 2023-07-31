@@ -3,13 +3,17 @@ package com.abranlezama.ecommercerestfulapi.exception;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,7 +25,8 @@ import java.util.Objects;
 
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.*;
 import static java.time.LocalTime.now;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestControllerAdvice
 @Slf4j
@@ -60,6 +65,37 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(UNAUTHORIZED)
     public ResponseEntity<Object> handleAccountLockedException(LockedException ex, WebRequest request) {
         return buildErrorResponse(ex, ACCOUNT_LOCKED, UNAUTHORIZED, request);
+    }
+
+    // business exceptions
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ResponseEntity<Object> handleBadRequestException(BadRequestException ex, WebRequest request) {
+        return buildErrorResponse(ex, ex.getMessage(), BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(CONFLICT)
+    public ResponseEntity<Object> handleConflictException(ConflictException ex, WebRequest request) {
+        return buildErrorResponse(ex, ex.getMessage(), CONFLICT, request);
+    }
+
+    @Override
+    @ResponseStatus(BAD_REQUEST)
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers,
+                                                                  HttpStatusCode status, WebRequest request) {
+        HttpResponse httpResponse = HttpResponse.builder()
+                .timeStamp(now().toString())
+                .message("User input validation error. Check 'errors' field for details")
+                .status(BAD_REQUEST.getReasonPhrase())
+                .statusCode(BAD_REQUEST.value())
+                .build();
+
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            httpResponse.addValidationError(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+
+        return ResponseEntity.badRequest().body(httpResponse);
     }
 
     private ResponseEntity<Object> buildErrorResponse(Exception ex, String errorMessage,
