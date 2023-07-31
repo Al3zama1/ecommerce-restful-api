@@ -53,7 +53,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 .build();
         user = userRepository.save(user);
         applicationEventPublisher.publishEvent(new UserCreatedEvent(user));
-
         return user.getId();
     }
 

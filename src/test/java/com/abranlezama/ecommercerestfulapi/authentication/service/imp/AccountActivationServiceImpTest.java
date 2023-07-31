@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
+import com.abranlezama.ecommercerestfulapi.authentication.event.UserCreatedEvent;
 import com.abranlezama.ecommercerestfulapi.authentication.model.AccountActivationToken;
 import com.abranlezama.ecommercerestfulapi.authentication.repository.AccountActivationTokenRepository;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
@@ -26,7 +27,6 @@ import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.AC
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.ACCOUNT_IS_ACTIVE_ALREADY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -62,7 +62,7 @@ class AccountActivationServiceImpTest {
             });
 
             // When
-            cut.createAccountActivationToken(user);
+            cut.createAccountActivationToken(new UserCreatedEvent(user));
 
             // Then
             then(accountActivationTokenRepository).should().save(tokenArgumentCaptor.capture());
