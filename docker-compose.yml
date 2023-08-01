@@ -16,9 +16,9 @@ services:
       - GREENMAIL_USER=test
       - GREENMAIL_PASSWORD=test
     ports:
-      - 3025:3025
-      - 3110:3110
-      - 3143:3143
+      - "3025:3025"
+      - "3110:3110"
+      - "3143:3143"
   roundcube:
     image: roundcube/roundcubemail
     depends_on:
