@@ -4,6 +4,7 @@ import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetReque
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
+import com.abranlezama.ecommercerestfulapi.exception.ForbiddenException;
 import com.abranlezama.ecommercerestfulapi.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD;
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER;
 import static com.abranlezama.ecommercerestfulapi.response.ResponseMessage.PASSWORD_RESET_REQUEST;
 import static org.mockito.BDDMockito.then;
@@ -78,6 +80,26 @@ class PasswordResetControllerIT {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.errorMessage", Matchers.is(PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER)));
+
+            // Then
+            then(passwordResetService).should().requestPasswordReset(request.email());
+        }
+
+        @Test
+        @DisplayName("return 403 status code when password reset request is made for unactivated account")
+        void shouldReturn403StatusCodeWhenPasswordResetRequestIsMadeForUnactivatedAccount() throws Exception {
+            // Given
+            PasswordResetRequestDTO request = new PasswordResetRequestDTO("john.last@gmail.com");
+
+            doThrow(new ForbiddenException(ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD)).when(passwordResetService)
+                    .requestPasswordReset(request.email());
+
+            // When
+            mockMvc.perform(post("/api/v1/auth/reset-password")
+                            .contentType(APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD)));
 
             // Then
             then(passwordResetService).should().requestPasswordReset(request.email());
