@@ -14,9 +14,12 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -46,9 +49,10 @@ class AuthenticationControllerIT {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-
     @MockBean
     private AuthenticationService authenticationService;
+    @MockBean
+    private CacheManager cacheManager;
     @MockBean
     private AccountActivationService accountActivationService;
     @MockBean
@@ -64,14 +68,18 @@ class AuthenticationControllerIT {
         @DisplayName("return 201 status code when customer is registered")
         void shouldReturn201StatusCodeWhenCustomerIsRegistered() throws Exception {
             // Given
+            UUID idempotencyKey = UUID.randomUUID();
+            Cache cache = Mockito.mock(Cache.class);
             RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
                     "john.last@gmail.com", "12345678", "12345678"
             );
 
+            given(cacheManager.getCache("idempotency")).willReturn(cache);
             given(authenticationService.registerCustomer(registerRequest)).willReturn(1L);
 
             // When
             mockMvc.perform(post("/api/v1/auth/register")
+                    .header("idempotency-key", idempotencyKey)
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(registerRequest)))
                     .andExpect(status().isCreated())

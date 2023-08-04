@@ -9,18 +9,18 @@ import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.abranlezama.ecommercerestfulapi.authentication.util.RefreshTokenConstants.REFRESH_TOKEN_EXPIRATION_TIME;
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
@@ -34,6 +34,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
     private final AccountActivationService accountActivationService;
+    private final CacheManager cacheManager;
 
     @Value("${custom.api-domain}")
     private String domain;
@@ -63,9 +64,19 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<HttpResponse> registerCustomer(@Valid @RequestBody RegisterRequestDTO request,
+                                                         @RequestHeader(name = "idempotency-key") UUID idempotencyKey,
                                                  UriComponentsBuilder uriComponentsBuilder) {
-        long userId = authenticationService.registerCustomer(request);
+
+        Cache idempotencyCache = cacheManager.getCache("idempotency");
+        Long userId = idempotencyCache.get(idempotencyKey.toString(), Long.class);
+
+        if (userId == null) {
+            userId = authenticationService.registerCustomer(request);
+            idempotencyCache.put(idempotencyKey.toString(), userId);
+        }
+
         UriComponents uriComponents = uriComponentsBuilder.path("/api/v1/users/{id}").buildAndExpand(userId);
+
         return ResponseEntity.created(URI.create(uriComponents.toUriString()))
                 .body(HttpResponse.builder()
                         .status(CREATED.getReasonPhrase().toLowerCase())
