@@ -19,7 +19,9 @@ public class HttpResponse {
     private int statusCode;
     private String status;
     private String message;
-    private Map<?, ?> result;
+    private Map<String, Object> result;
+    private String error;
+    private String errorMessage;
     private String stackTrace;
     private List<UserInputValidationError> validationErrors;
 
