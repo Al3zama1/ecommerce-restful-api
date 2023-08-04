@@ -142,7 +142,7 @@ class AuthenticationControllerIT {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.message", Matchers.is(FAILED_AUTHENTICATION)))
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(FAILED_AUTHENTICATION)))
                     .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
                     .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
 
@@ -165,7 +165,7 @@ class AuthenticationControllerIT {
                             .contentType(APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.message", Matchers.is(FAILED_AUTHENTICATION)))
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(FAILED_AUTHENTICATION)))
                     .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
                     .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
 
@@ -188,7 +188,7 @@ class AuthenticationControllerIT {
                             .contentType(APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_DISABLED)))
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(ACCOUNT_DISABLED)))
                     .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
                     .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
 
@@ -211,7 +211,7 @@ class AuthenticationControllerIT {
                             .contentType(APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_LOCKED)))
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(ACCOUNT_LOCKED)))
                     .andExpect(jsonPath("$.status", Matchers.is(UNAUTHORIZED.getReasonPhrase())))
                     .andExpect(jsonPath("$.statusCode", Matchers.is(UNAUTHORIZED.value())));
 
@@ -276,7 +276,7 @@ class AuthenticationControllerIT {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(activateRequest)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)));
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)));
 
             // Then
             then(accountActivationService).should().activateCustomerAccount(activationToken);
@@ -297,7 +297,7 @@ class AuthenticationControllerIT {
                     .contentType(APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(activateRequest)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.message", Matchers.is(ACCOUNT_IS_ACTIVE_ALREADY)));
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(ACCOUNT_IS_ACTIVE_ALREADY)));
 
             // Then
             then(accountActivationService).should().activateCustomerAccount(activationToken);

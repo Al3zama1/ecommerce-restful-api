@@ -17,8 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.PASSWORD_RESET_REQUEST_NON_EXISTING_USER;
-import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.USER_NOT_FOUND;
+import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER;
 import static com.abranlezama.ecommercerestfulapi.response.ResponseMessage.PASSWORD_RESET_REQUEST;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
@@ -70,7 +69,7 @@ class PasswordResetControllerIT {
             // Given
             PasswordResetRequestDTO request = new PasswordResetRequestDTO("john.last@gmail.com");
 
-            doThrow(new NotFoundException(PASSWORD_RESET_REQUEST_NON_EXISTING_USER)).when(passwordResetService)
+            doThrow(new NotFoundException(PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER)).when(passwordResetService)
                     .requestPasswordReset(request.email());
 
             // When
@@ -78,8 +77,7 @@ class PasswordResetControllerIT {
                             .contentType(APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message", Matchers.is(PASSWORD_RESET_REQUEST_NON_EXISTING_USER)))
-                    .andExpect(jsonPath("$.errorMessage", Matchers.is(USER_NOT_FOUND)));
+                    .andExpect(jsonPath("$.errorMessage", Matchers.is(PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER)));
 
             // Then
             then(passwordResetService).should().requestPasswordReset(request.email());

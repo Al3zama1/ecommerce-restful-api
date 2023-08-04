@@ -108,7 +108,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                       HttpStatus status, WebRequest request) {
         HttpResponse.HttpResponseBuilder httpResponseBuilder = HttpResponse.builder()
                 .timeStamp(now().toString())
-                .message(errorMessage)
+                .errorMessage(errorMessage)
                 .status(status.getReasonPhrase())
                 .statusCode(status.value());
 

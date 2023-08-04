@@ -20,7 +20,6 @@ public class HttpResponse {
     private String status;
     private String message;
     private Map<String, Object> result;
-    private String error;
     private String errorMessage;
     private String stackTrace;
     private List<UserInputValidationError> validationErrors;
