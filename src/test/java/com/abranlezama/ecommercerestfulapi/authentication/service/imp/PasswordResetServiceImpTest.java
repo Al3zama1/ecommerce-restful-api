@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -27,6 +28,7 @@ import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.PA
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -34,6 +36,8 @@ import static org.mockito.BDDMockito.then;
 @DisplayName("password reset service")
 class PasswordResetServiceImpTest {
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
     @Mock
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock
@@ -59,6 +63,9 @@ class PasswordResetServiceImpTest {
 
             given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
             given(clock.instant()).willReturn(instant);
+            given(passwordResetTokenRepository.save(any(PasswordResetToken.class))).willAnswer(invocation -> {
+                return invocation.getArgument(0);
+            });
 
             // When
             cut.requestPasswordReset(email);

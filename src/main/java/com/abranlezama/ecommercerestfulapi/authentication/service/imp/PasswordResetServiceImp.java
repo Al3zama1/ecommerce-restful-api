@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
+import com.abranlezama.ecommercerestfulapi.authentication.event.ResetPasswordEvent;
 import com.abranlezama.ecommercerestfulapi.authentication.model.PasswordResetToken;
 import com.abranlezama.ecommercerestfulapi.authentication.repository.PasswordResetTokenRepository;
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
@@ -8,6 +9,7 @@ import com.abranlezama.ecommercerestfulapi.exception.NotFoundException;
 import com.abranlezama.ecommercerestfulapi.user.model.User;
 import com.abranlezama.ecommercerestfulapi.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 @RequiredArgsConstructor
 public class PasswordResetServiceImp implements PasswordResetService {
 
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UserRepository userRepository;
     private final Clock clock;
@@ -33,7 +36,6 @@ public class PasswordResetServiceImp implements PasswordResetService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException(PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER));
 
-        // TODO - don't allow users to reset password if account is disabled
         if (!user.getEnabled()) throw new ForbiddenException(ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD);
 
         PasswordResetToken passwordResetToken = PasswordResetToken.builder()
@@ -43,6 +45,7 @@ public class PasswordResetServiceImp implements PasswordResetService {
                 .expiresAt(Instant.now(clock).plus(1, HOURS))
                 .build();
 
-        passwordResetTokenRepository.save(passwordResetToken);
+        passwordResetToken = passwordResetTokenRepository.save(passwordResetToken);
+        applicationEventPublisher.publishEvent(new ResetPasswordEvent(user.getEmail(), passwordResetToken.getToken().toString()));
     }
 }

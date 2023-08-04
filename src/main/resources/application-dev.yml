@@ -33,3 +33,5 @@ custom:
     enabled: true
   account-activation:
     url: http://localhost:5173/activate-account
+  password-reset:
+    url: http://localhost:5173/reset-password
