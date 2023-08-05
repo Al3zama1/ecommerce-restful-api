@@ -3,6 +3,7 @@ package com.abranlezama.ecommercerestfulapi.response;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import static java.time.LocalDateTime.now;
 
 @Builder
 @Data
-public class HttpResponse {
+public class HttpResponse implements Serializable {
 
     @Builder.Default
     private String timeStamp = now().toString();

@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
@@ -14,9 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
 
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD;
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER;
@@ -24,7 +28,7 @@ import static com.abranlezama.ecommercerestfulapi.response.ResponseMessage.PASSW
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +43,8 @@ class PasswordResetControllerIT {
     private ObjectMapper objectMapper;
     @MockBean
     private UserDetailsService userDetailsService;
+    @MockBean
+    private CacheManager cacheManager;
     @MockBean
     private CorsConfig corsConfig;
     @MockBean
@@ -106,5 +112,32 @@ class PasswordResetControllerIT {
         }
 
     }
+
+    @Nested
+    @DisplayName("password reset")
+    class PasswordReset {
+
+        @Test
+        @DisplayName("return 200 status code when password is reset")
+        void shouldReturn200StatusCodeWhenPasswordIsReset() throws Exception {
+            // Given
+            PasswordResetDTO request = new PasswordResetDTO("123456789", "123456789", UUID.randomUUID());
+            UUID idempotencyKey = UUID.randomUUID();
+
+
+            // When
+            mockMvc.perform(patch("/api/v1/auth/reset-password")
+                    .header("idempotency-key", idempotencyKey)
+                    .contentType(APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk());
+
+            // Then
+            then(passwordResetService).should().resetPassword(request);
+
+        }
+    }
+
+
 
 }

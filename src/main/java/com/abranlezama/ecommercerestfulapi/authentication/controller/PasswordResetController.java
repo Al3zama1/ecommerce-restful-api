@@ -1,15 +1,18 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequestDTO;
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
+import static com.abranlezama.ecommercerestfulapi.response.ResponseMessage.PASSWORD_RESET;
 import static com.abranlezama.ecommercerestfulapi.response.ResponseMessage.PASSWORD_RESET_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -19,6 +22,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;
+    private final CacheManager cacheManager;
 
     @PostMapping
     public HttpResponse requestPasswordReset(@Valid @RequestBody PasswordResetRequestDTO request) {
@@ -26,6 +30,18 @@ public class PasswordResetController {
         return HttpResponse.builder()
                 .message(PASSWORD_RESET_REQUEST)
                 .status(OK.getReasonPhrase().toLowerCase())
+                .statusCode(OK.value())
+                .build();
+    }
+
+    @PatchMapping
+    @Cacheable(value = "idempotency", key = "#idempotencyKey")
+    public HttpResponse resetPassword(@Valid @RequestBody PasswordResetDTO request,
+                                      @RequestHeader(name = "idempotency-key")UUID idempotencyKey) {
+        passwordResetService.resetPassword(request);
+        return HttpResponse.builder()
+                .status(OK.getReasonPhrase().toLowerCase())
+                .message(PASSWORD_RESET)
                 .statusCode(OK.value())
                 .build();
     }
