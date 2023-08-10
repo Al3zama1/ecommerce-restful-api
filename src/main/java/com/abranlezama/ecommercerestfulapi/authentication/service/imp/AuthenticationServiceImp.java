@@ -1,7 +1,7 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.event.UserCreatedEvent;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
@@ -37,7 +37,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final JwtService jwtService;
 
     @Override
-    public long registerCustomer(RegisterRequestDTO request) {
+    public long registerCustomer(RegistrationRequest request) {
         if (!request.password().equals(request.verifyPassword()))
             throw new BadRequestException(REGISTER_PASSWORDS_MISMATCH);
 
@@ -57,7 +57,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> authenticateCustomer(LoginRequestDTO request) {
+    public Map<String, String> authenticateCustomer(AuthenticationRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );

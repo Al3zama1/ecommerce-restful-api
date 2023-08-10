@@ -1,6 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.model.PasswordResetToken;
 import com.abranlezama.ecommercerestfulapi.authentication.repository.PasswordResetTokenRepository;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
@@ -128,7 +128,7 @@ class PasswordResetServiceImpTest {
         @DisplayName("should reset user password")
         void shouldResetUserPassword() {
             // Given
-            PasswordResetDTO request = new PasswordResetDTO("123456789", "123456789", UUID.randomUUID());
+            PasswordResetRequest request = new PasswordResetRequest("123456789", "123456789", UUID.randomUUID());
             LocalDateTime defaultLocalDateTime = LocalDateTime.of(2023, 11, 3, 5, 4);
             PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                     .id(1L)
@@ -151,7 +151,7 @@ class PasswordResetServiceImpTest {
         @DisplayName("should fail password reset when passwords do not match")
         void shouldFailPasswordResetWhenPasswordsDoNotMatch() {
             // Given
-            PasswordResetDTO request = new PasswordResetDTO("12345678", "123456789", UUID.randomUUID());
+            PasswordResetRequest request = new PasswordResetRequest("12345678", "123456789", UUID.randomUUID());
 
             // When
             assertThatThrownBy(() -> cut.resetPassword(request))
@@ -166,7 +166,7 @@ class PasswordResetServiceImpTest {
         @DisplayName("should fail password reset when password reset token is not found")
         void shouldThrowNotFoundExceptionWhenPasswordResetTokenIsNotFound() {
             // Given
-            PasswordResetDTO request = new PasswordResetDTO("123456789", "123456789", UUID.randomUUID());
+            PasswordResetRequest request = new PasswordResetRequest("123456789", "123456789", UUID.randomUUID());
 
             // When
             assertThatThrownBy(() -> cut.resetPassword(request))
@@ -181,7 +181,7 @@ class PasswordResetServiceImpTest {
         @DisplayName("should fail password reset when password reset token is has expired")
         void shouldFailPasswordResetWhenPasswordResetTokenHasExpired() {
             // Given
-            PasswordResetDTO request = new PasswordResetDTO("123456789", "123456789", UUID.randomUUID());
+            PasswordResetRequest request = new PasswordResetRequest("123456789", "123456789", UUID.randomUUID());
             LocalDateTime defaultLocalDateTime = LocalDateTime.of(2023, 11, 3, 5, 4);
             PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                     .id(1L)

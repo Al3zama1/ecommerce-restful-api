@@ -2,7 +2,7 @@ package com.abranlezama.ecommercerestfulapi.authentication.dto;
 
 import jakarta.validation.constraints.Email;
 
-public record PasswordResetRequestDTO(
+public record PasswordResetEmailRequest(
         @Email String email
 ) {
 }

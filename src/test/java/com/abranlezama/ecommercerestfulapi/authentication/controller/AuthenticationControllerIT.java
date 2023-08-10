@@ -1,8 +1,8 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AccountActivationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AccountActivationService;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
@@ -70,7 +70,7 @@ class AuthenticationControllerIT {
             // Given
             UUID idempotencyKey = UUID.randomUUID();
             Cache cache = Mockito.mock(Cache.class);
-            RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
+            RegistrationRequest registerRequest = new RegistrationRequest("John", "Last",
                     "john.last@gmail.com", "12345678", "12345678"
             );
 
@@ -94,7 +94,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 401 status code when registration input is invalid")
         void shouldReturn401StatusCodeWhenRegistrationInputIsInvalid() throws Exception {
             // Given
-            RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
+            RegistrationRequest registerRequest = new RegistrationRequest("John", "Last",
                     "john.last@gmail.com", "123456", "12345678"
             );
 
@@ -118,7 +118,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 200 status code when authentication succeeds")
         void shouldReturn200StatusCodeWhenAuthenticationSucceeds() throws Exception {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
 
             given(authenticationService.authenticateCustomer(loginRequest))
                     .willReturn(Map.of("refreshToken", "refresh-token", "accessToken", "access-token"));
@@ -140,7 +140,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 401 status cod when authentication fails due to incorrect email")
         void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToIncorrectEmail() throws Exception {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
 
             given(authenticationService.authenticateCustomer(loginRequest))
                     .willThrow(new UsernameNotFoundException(FAILED_AUTHENTICATION));
@@ -163,7 +163,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 401 status cod when authentication fails due to incorrect password")
         void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToIncorrectPassword() throws Exception {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
 
             given(authenticationService.authenticateCustomer(loginRequest))
                     .willThrow(new BadCredentialsException(FAILED_AUTHENTICATION));
@@ -186,7 +186,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 401 status cod when authentication fails due to unactivated account")
         void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToUnactivatedAccount() throws Exception {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
 
             given(authenticationService.authenticateCustomer(loginRequest))
                     .willThrow(new DisabledException(ACCOUNT_DISABLED));
@@ -209,7 +209,7 @@ class AuthenticationControllerIT {
         @DisplayName("return 401 status cod when authentication fails due to account locked")
         void shouldReturn401StatusCodeWhenCustomerAuthenticationFailsDueToAccountLocked() throws Exception {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
 
             given(authenticationService.authenticateCustomer(loginRequest))
                     .willThrow(new LockedException(ACCOUNT_LOCKED));
@@ -238,7 +238,7 @@ class AuthenticationControllerIT {
         void shouldReturn200StatusCodeWhenCustomerAccountIsActivated() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
+            AccountActivationRequest activateRequest = new AccountActivationRequest(activationToken);
 
             // When
             mockMvc.perform(post("/api/v1/auth/activate-account")
@@ -255,7 +255,7 @@ class AuthenticationControllerIT {
         void shouldReturn400StatusCodeWhenActivationTokenFailsValidation() throws Exception {
             // Given
             String activationToken = "some random incorrect account activation token";
-            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
+            AccountActivationRequest activateRequest = new AccountActivationRequest(activationToken);
 
             // When
             mockMvc.perform(post("/api/v1/auth/activate-account")
@@ -274,7 +274,7 @@ class AuthenticationControllerIT {
         void shouldReturn404StatusWhenAccountActivationTokenIsNotValid() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
+            AccountActivationRequest activateRequest = new AccountActivationRequest(activationToken);
 
             doThrow(new NotFoundException(ACCOUNT_ACTIVATION_TOKEN_NOT_FOUND)).when(accountActivationService)
                     .activateCustomerAccount(activationToken);
@@ -295,7 +295,7 @@ class AuthenticationControllerIT {
         void shouldReturn409StatusCodeWhenActivatingActiveAccount() throws Exception {
             // Given
             String activationToken = UUID.randomUUID().toString();
-            ActivateAccountRequestDTO activateRequest = new ActivateAccountRequestDTO(activationToken);
+            AccountActivationRequest activateRequest = new AccountActivationRequest(activationToken);
 
             doThrow(new ConflictException(ACCOUNT_IS_ACTIVE_ALREADY)).when(accountActivationService)
                     .activateCustomerAccount(activationToken);

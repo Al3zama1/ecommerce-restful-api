@@ -1,7 +1,7 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.repository.AccountActivationTokenRepository;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
@@ -63,7 +63,7 @@ class AuthenticationServiceImpTest {
         @DisplayName("should register customer")
         void shouldRegisterCustomer() {
             // Given
-            RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
+            RegistrationRequest registerRequest = new RegistrationRequest("John", "Last",
                     "john.last@gmail.com", "12345678", "12345678"
             );
 
@@ -86,7 +86,7 @@ class AuthenticationServiceImpTest {
         @DisplayName("should fail registration and throw BadRequestException when registration passwords do not match")
         void shouldFailRegistrationAndThrowBadRequestExceptionWhenRegistrationPasswordsDoNotMatch() {
             // Given
-            RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
+            RegistrationRequest registerRequest = new RegistrationRequest("John", "Last",
                     "john.last@gmail.com", "123456788", "12345678"
             );
 
@@ -103,7 +103,7 @@ class AuthenticationServiceImpTest {
         @DisplayName("should fail registration and throw ConflictException when registration email is taken")
         void shouldFailRegistrationAndThrowConflictExceptionWhenRegistrationEmailIsTaken() {
             // Given
-            RegisterRequestDTO registerRequest = new RegisterRequestDTO("John", "Last",
+            RegistrationRequest registerRequest = new RegistrationRequest("John", "Last",
                     "john.last@gmail.com", "12345678", "12345678"
             );
 
@@ -127,7 +127,7 @@ class AuthenticationServiceImpTest {
         @DisplayName("should authenticate customer")
         void shouldAuthenticateCustomer() {
             // Given
-            LoginRequestDTO loginRequest = new LoginRequestDTO("john.last@gmail.com", "12345678");
+            AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
             SecurityService.UserPrincipal userPrincipal = new SecurityService.UserPrincipal(UserObjectMother.customer().build());
             UsernamePasswordAuthenticationToken authTokenRequest = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
             UsernamePasswordAuthenticationToken authTokenResponse = new UsernamePasswordAuthenticationToken(

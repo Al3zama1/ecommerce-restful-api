@@ -1,6 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.event.ResetPasswordEvent;
 import com.abranlezama.ecommercerestfulapi.authentication.model.PasswordResetToken;
 import com.abranlezama.ecommercerestfulapi.authentication.repository.PasswordResetTokenRepository;
@@ -53,7 +53,7 @@ public class PasswordResetServiceImp implements PasswordResetService {
     }
 
     @Override
-    public void resetPassword(PasswordResetDTO request) {
+    public void resetPassword(PasswordResetRequest request) {
         if (!request.password().equals(request.verifyPassword())) {
             throw new BadRequestException(RESET_PASSWORDS_MUST_MATCH);
         }

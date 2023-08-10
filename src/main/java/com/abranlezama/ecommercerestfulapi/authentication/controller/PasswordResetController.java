@@ -1,7 +1,7 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetEmailRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
 import jakarta.validation.Valid;
@@ -25,7 +25,7 @@ public class PasswordResetController {
     private final CacheManager cacheManager;
 
     @PostMapping
-    public HttpResponse requestPasswordReset(@Valid @RequestBody PasswordResetRequestDTO request) {
+    public HttpResponse requestPasswordReset(@Valid @RequestBody PasswordResetEmailRequest request) {
         passwordResetService.requestPasswordReset(request.email());
         return HttpResponse.builder()
                 .message(PASSWORD_RESET_REQUEST)
@@ -36,7 +36,7 @@ public class PasswordResetController {
 
     @PatchMapping
     @Cacheable(value = "idempotency", key = "#idempotencyKey")
-    public HttpResponse resetPassword(@Valid @RequestBody PasswordResetDTO request,
+    public HttpResponse resetPassword(@Valid @RequestBody PasswordResetRequest request,
                                       @RequestHeader(name = "idempotency-key")UUID idempotencyKey) {
         passwordResetService.resetPassword(request);
         return HttpResponse.builder()

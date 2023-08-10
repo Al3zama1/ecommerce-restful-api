@@ -1,8 +1,8 @@
 package com.abranlezama.ecommercerestfulapi.authentication.service;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequest;
 
 public interface PasswordResetService {
     void requestPasswordReset(String email);
-    void resetPassword(PasswordResetDTO reset);
+    void resetPassword(PasswordResetRequest reset);
 }

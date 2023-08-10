@@ -1,8 +1,8 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.ActivateAccountRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.LoginRequestDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.RegisterRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AccountActivationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AccountActivationService;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
@@ -40,7 +40,7 @@ public class AuthenticationController {
     private String domain;
 
     @PostMapping
-    public ResponseEntity<HttpResponse> authenticateUser(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<HttpResponse> authenticateUser(@Valid @RequestBody AuthenticationRequest request) {
         Map<String, String> tokens = authenticationService.authenticateCustomer(request);
         return ResponseEntity.ok()
                 .header(SET_COOKIE, createUserRefreshTokenCookie(tokens.get("refreshToken")).toString())
@@ -63,7 +63,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<HttpResponse> registerCustomer(@Valid @RequestBody RegisterRequestDTO request,
+    public ResponseEntity<HttpResponse> registerCustomer(@Valid @RequestBody RegistrationRequest request,
                                                          @RequestHeader(name = "idempotency-key") UUID idempotencyKey,
                                                  UriComponentsBuilder uriComponentsBuilder) {
 
@@ -84,7 +84,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/activate-account")
-    public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody ActivateAccountRequestDTO request) {
+    public ResponseEntity<HttpResponse> activateCustomerAccount(@Valid @RequestBody AccountActivationRequest request) {
         accountActivationService.activateCustomerAccount(request.token());
         return ResponseEntity.ok()
                 .body(HttpResponse.builder()

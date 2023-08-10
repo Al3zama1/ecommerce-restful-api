@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.email.service.imp;
 
+import com.abranlezama.ecommercerestfulapi.ContainersConfig;
 import com.abranlezama.ecommercerestfulapi.authentication.event.ActivateAccountEvent;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @SpringBootTest
 @DisplayName("send account activation email service")
+@Import(ContainersConfig.class)
 class SendAccountActivationEmailIT {
 
     @Autowired

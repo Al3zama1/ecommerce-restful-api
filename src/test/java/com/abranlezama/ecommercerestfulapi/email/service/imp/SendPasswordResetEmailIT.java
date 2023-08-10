@@ -1,5 +1,6 @@
 package com.abranlezama.ecommercerestfulapi.email.service.imp;
 
+import com.abranlezama.ecommercerestfulapi.ContainersConfig;
 import com.abranlezama.ecommercerestfulapi.authentication.event.ResetPasswordEvent;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -10,18 +11,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 
 @SpringBootTest
 @DisplayName("send password reset email service")
-class SendPasswordResetEmailTest {
+@Import(ContainersConfig.class)
+class SendPasswordResetEmailIT {
 
     @Autowired
     private SendPasswordResetEmail cut;

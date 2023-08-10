@@ -1,7 +1,7 @@
 package com.abranlezama.ecommercerestfulapi.authentication.controller;
 
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetDTO;
-import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequestDTO;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetRequest;
+import com.abranlezama.ecommercerestfulapi.authentication.dto.PasswordResetEmailRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.service.PasswordResetService;
 import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
@@ -58,7 +58,7 @@ class PasswordResetControllerIT {
         @DisplayName("should return 200 status code when password reset token is generated")
         void shouldReturn204StatusCodeWhenPasswordResetTokenIsGenerated() throws Exception {
             // Given
-            PasswordResetRequestDTO request = new PasswordResetRequestDTO("john.last@gmail.com");
+            PasswordResetEmailRequest request = new PasswordResetEmailRequest("john.last@gmail.com");
 
             // When
             mockMvc.perform(post("/api/v1/auth/reset-password")
@@ -75,7 +75,7 @@ class PasswordResetControllerIT {
         @DisplayName("return 404 status code when password reset request is made for non existing email")
         void shouldReturn404StatusCodeWhenPasswordResetRequestIsMadeForNonExistingEmail() throws Exception {
             // Given
-            PasswordResetRequestDTO request = new PasswordResetRequestDTO("john.last@gmail.com");
+            PasswordResetEmailRequest request = new PasswordResetEmailRequest("john.last@gmail.com");
 
             doThrow(new NotFoundException(PASSWORD_RESET_REQUEST_FOR_NON_EXISTING_USER)).when(passwordResetService)
                     .requestPasswordReset(request.email());
@@ -95,7 +95,7 @@ class PasswordResetControllerIT {
         @DisplayName("return 403 status code when password reset request is made for unactivated account")
         void shouldReturn403StatusCodeWhenPasswordResetRequestIsMadeForUnactivatedAccount() throws Exception {
             // Given
-            PasswordResetRequestDTO request = new PasswordResetRequestDTO("john.last@gmail.com");
+            PasswordResetEmailRequest request = new PasswordResetEmailRequest("john.last@gmail.com");
 
             doThrow(new ForbiddenException(ACCOUNT_MUST_BE_ENABLED_TO_RESET_PASSWORD)).when(passwordResetService)
                     .requestPasswordReset(request.email());
@@ -121,7 +121,7 @@ class PasswordResetControllerIT {
         @DisplayName("return 200 status code when password is reset")
         void shouldReturn200StatusCodeWhenPasswordIsReset() throws Exception {
             // Given
-            PasswordResetDTO request = new PasswordResetDTO("123456789", "123456789", UUID.randomUUID());
+            PasswordResetRequest request = new PasswordResetRequest("123456789", "123456789", UUID.randomUUID());
             UUID idempotencyKey = UUID.randomUUID();
 
 
