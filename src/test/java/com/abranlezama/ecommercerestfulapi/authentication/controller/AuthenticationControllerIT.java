@@ -9,6 +9,9 @@ import com.abranlezama.ecommercerestfulapi.config.CorsConfig;
 import com.abranlezama.ecommercerestfulapi.config.SecurityConfig;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
 import com.abranlezama.ecommercerestfulapi.exception.NotFoundException;
+import com.abranlezama.ecommercerestfulapi.jwt.service.JwtService;
+import com.abranlezama.ecommercerestfulapi.objectMother.UserObjectMother;
+import com.abranlezama.ecommercerestfulapi.user.service.imp.SecurityService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +31,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.*;
@@ -49,6 +51,8 @@ class AuthenticationControllerIT {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
+    @MockBean
+    private JwtService jwtService;
     @MockBean
     private AuthenticationService authenticationService;
     @MockBean
@@ -119,9 +123,11 @@ class AuthenticationControllerIT {
         void shouldReturn200StatusCodeWhenAuthenticationSucceeds() throws Exception {
             // Given
             AuthenticationRequest loginRequest = new AuthenticationRequest("john.last@gmail.com", "12345678");
+            SecurityService.UserPrincipal userDetails = new SecurityService.UserPrincipal(UserObjectMother.customer().build());
 
-            given(authenticationService.authenticateCustomer(loginRequest))
-                    .willReturn(Map.of("refreshToken", "refresh-token", "accessToken", "access-token"));
+            given(authenticationService.authenticateCustomer(loginRequest)).willReturn(userDetails);
+            given(jwtService.createAccessToken(userDetails)).willReturn("access-token");
+            given(authenticationService.createRefreshToken(userDetails)).willReturn("refresh-token");
 
             // When
             mockMvc.perform(post("/api/v1/auth")

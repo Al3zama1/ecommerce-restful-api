@@ -5,7 +5,9 @@ import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequ
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AccountActivationService;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
+import com.abranlezama.ecommercerestfulapi.jwt.service.JwtService;
 import com.abranlezama.ecommercerestfulapi.response.HttpResponse;
+import com.abranlezama.ecommercerestfulapi.user.service.imp.SecurityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
     private final AccountActivationService accountActivationService;
+    private final JwtService jwtService;
     private final CacheManager cacheManager;
 
     @Value("${custom.api-domain}")
@@ -41,13 +44,16 @@ public class AuthenticationController {
 
     @PostMapping
     public ResponseEntity<HttpResponse> authenticateUser(@Valid @RequestBody AuthenticationRequest request) {
-        Map<String, String> tokens = authenticationService.authenticateCustomer(request);
+        SecurityService.UserPrincipal userDetails = (SecurityService.UserPrincipal) authenticationService.authenticateCustomer(request);
+        String accessToken = jwtService.createAccessToken(userDetails);
+        String refreshToken = authenticationService.createRefreshToken(userDetails);
+
         return ResponseEntity.ok()
-                .header(SET_COOKIE, createUserRefreshTokenCookie(tokens.get("refreshToken")).toString())
+                .header(SET_COOKIE, createUserRefreshTokenCookie(refreshToken).toString())
                 .body(HttpResponse.builder()
                         .status(OK.getReasonPhrase().toLowerCase())
                         .statusCode(OK.value())
-                        .result(Map.of("accessToken", tokens.get("accessToken")))
+                        .result(Map.of("accessToken", accessToken))
                         .build()
                 );
     }

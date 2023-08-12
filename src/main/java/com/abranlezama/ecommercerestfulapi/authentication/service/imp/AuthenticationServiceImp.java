@@ -3,6 +3,8 @@ package com.abranlezama.ecommercerestfulapi.authentication.service.imp;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.AuthenticationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.dto.RegistrationRequest;
 import com.abranlezama.ecommercerestfulapi.authentication.event.UserCreatedEvent;
+import com.abranlezama.ecommercerestfulapi.authentication.model.RefreshToken;
+import com.abranlezama.ecommercerestfulapi.authentication.repository.RefreshTokenRepository;
 import com.abranlezama.ecommercerestfulapi.authentication.service.AuthenticationService;
 import com.abranlezama.ecommercerestfulapi.exception.BadRequestException;
 import com.abranlezama.ecommercerestfulapi.exception.ConflictException;
@@ -19,8 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.UUID;
 
+import static com.abranlezama.ecommercerestfulapi.authentication.util.RefreshTokenConstants.REFRESH_TOKEN_EXPIRATION_TIME;
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.REGISTER_EMAIL_MUST_BE_UNIQUE;
 import static com.abranlezama.ecommercerestfulapi.exception.ExceptionMessages.REGISTER_PASSWORDS_MISMATCH;
 import static com.abranlezama.ecommercerestfulapi.user.role.UserRoleType.CUSTOMER;
@@ -32,7 +37,9 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final Clock clock;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
@@ -57,16 +64,24 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> authenticateCustomer(AuthenticationRequest request) {
+    public UserDetails authenticateCustomer(AuthenticationRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return Map.of(
-                "accessToken", jwtService.createAccessToken(userDetails),
-                "refreshToken", jwtService.createRefreshToken()
-        );
+        return (UserDetails) authentication.getPrincipal();
+    }
+
+    @Override
+    public String createRefreshToken(User user) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(UUID.fromString(jwtService.createRefreshToken()))
+                .createdAt(Instant.now(clock))
+                .expiresAt(Instant.now(clock).plusMillis(REFRESH_TOKEN_EXPIRATION_TIME))
+                .user(user)
+                .build();
+
+        return refreshTokenRepository.save(refreshToken).getToken().toString();
     }
 
 }
